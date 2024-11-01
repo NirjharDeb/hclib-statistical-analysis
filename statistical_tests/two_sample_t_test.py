@@ -72,6 +72,26 @@ def run_tests(folder_name, node_counts, pdf_file, plot_filename):
             else:
                 means_dict[variant].append(None)
 
+    # Plot mean lap times for all variants
+    plt.figure(figsize=(6, 4))
+    color_palette = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728']  # Modern color palette
+    for idx, (variant, means) in enumerate(means_dict.items()):
+        filtered_means = [m for m in means if m is not None]
+        filtered_nodes = [node_counts[i] for i, m in enumerate(means) if m is not None]
+        if filtered_means:
+            plt.plot(filtered_nodes, filtered_means, label=variant, marker='o', linestyle='-',
+                     color=color_palette[idx % len(color_palette)])
+    plt.xlabel("Number of Nodes")
+    plt.ylabel("Mean Lap Time (ms)")
+    plt.title("Mean Lap Times for Algorithm Variants")
+    plt.legend()
+    plt.grid(True, linestyle='--', linewidth=0.5, color='grey')
+    plt.tight_layout()
+
+    # Save the plot as a high-resolution image and add it to the PDF before the tables
+    plt.savefig(plot_filename, dpi=300)
+    elements.append(Image(plot_filename, width=6 * inch, height=4 * inch))
+
     # Generate a table for each pairwise comparison
     for i in range(len(variant_dirs)):
         for j in range(i + 1, len(variant_dirs)):
@@ -125,29 +145,10 @@ def run_tests(folder_name, node_counts, pdf_file, plot_filename):
             elements.append(table)
             elements.append(Spacer(1, 12))
 
-    # Plot mean lap times for all variants
-    plt.figure(figsize=(6, 4))
-    color_palette = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728']  # Modern color palette
-    for idx, (variant, means) in enumerate(means_dict.items()):
-        filtered_means = [m for m in means if m is not None]
-        filtered_nodes = [node_counts[i] for i, m in enumerate(means) if m is not None]
-        if filtered_means:
-            plt.plot(filtered_nodes, filtered_means, label=variant, marker='o', linestyle='-',
-                     color=color_palette[idx % len(color_palette)])
-    plt.xlabel("Number of Nodes")
-    plt.ylabel("Mean Lap Time (ms)")
-    plt.title("Mean Lap Times for Algorithm Variants")
-    plt.legend()
-    plt.grid(True, linestyle='--', linewidth=0.5, color='grey')
-    plt.tight_layout()
-
-    # Save the plot as a high-resolution image and add it to the PDF
-    plt.savefig(plot_filename, dpi=300)
-    elements.append(Image(plot_filename, width=6 * inch, height=4 * inch))
-
     # Build PDF
     doc.build(elements)
     print(f"Hypothesis test results and plot have been saved to {pdf_file}")
+
 
 
 # Example usage for triangle counting algorithm variants (original, linear search, binary search)
