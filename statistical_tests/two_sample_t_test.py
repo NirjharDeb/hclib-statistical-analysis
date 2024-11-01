@@ -150,10 +150,10 @@ def run_tests(folder_name, node_counts, pdf_file, plot_filename):
     print(f"Hypothesis test results and plot have been saved to {pdf_file}")
 
 
-# Example usage
+# Example usage for triangle counting algorithm variants (original, linear search, binary search)
 if __name__ == "__main__":
     folder_name = "../triangle_counter_fall_2024"
     node_counts = [1, 2, 4, 8, 16]
-    pdf_file = "results_1.pdf"
-    plot_filename = "plot_1.png"
+    pdf_file = "triangle_counter_analysis.pdf"
+    plot_filename = "triangle_counter_graph.png"
     run_tests(folder_name, node_counts, pdf_file, plot_filename)
