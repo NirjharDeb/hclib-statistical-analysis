@@ -14,3 +14,8 @@ In conclusion, even though the performance improvement is positive on average, a
 - 4 nodes, 96 PEs --> statistically significant
 - 8 nodes, 192 PEs --> statistically significant
 - 16 nodes, 384 PEs --> statistically significant
+
+## triangle_counter_fall_2024
+This folder contains the laptimes for the original and the modified (linear search and binary search) variants of the HClib triangle counting algorithm. For each pairwise comparison of the algorithm, for all node/PE combinations, the differences were statistically significant. These differences can be seen in the figure below.
+
+![Triangle Counter Graph](statistical_tests/triangle_counter_graph.png)
