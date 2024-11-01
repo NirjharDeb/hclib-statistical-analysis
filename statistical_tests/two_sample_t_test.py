@@ -34,6 +34,18 @@ def tTest(nodes, folder_name, variant):
 
     return data_sample
 
+def determine_scaling(means):
+    """
+    Determines if the scaling is strong or weak based on changes in mean lap time.
+    """
+    # Compute the percentage changes in lap times
+    percentage_changes = [abs((y - x)/x)*100 if x != 0 else 0 for x, y in zip(means, means[1:])]
+
+    # If lap times change significantly (more than 10%), classify as strong scaling
+    if any(change > 10 for change in percentage_changes):
+        return "strong scaling (constant problem size with increasing nodes)"
+    else:
+        return "weak scaling (problem size increases with nodes)"
 
 def run_tests(folder_name, node_counts, pdf_file, plot_filename):
     global means_dict, data_samples
@@ -43,12 +55,21 @@ def run_tests(folder_name, node_counts, pdf_file, plot_filename):
     elements = []
     styles = getSampleStyleSheet()
 
-    # Register fonts
+    # Register fonts and choose a clean font for the document
     try:
         pdfmetrics.registerFont(TTFont('HelveticaNeue', 'HelveticaNeue.ttf'))
         font_name = 'HelveticaNeue'
     except:
         font_name = 'Helvetica'
+
+    title_style = styles['Title']
+    title_style.fontName = font_name
+    title_style.fontSize = 14
+    title_style.spaceAfter = 10
+
+    normal_style = styles['Normal']
+    normal_style.fontName = font_name
+    normal_style.fontSize = 11
 
     # Detect algorithm variants
     variant_dirs = [d for d in os.listdir(folder_name) if os.path.isdir(os.path.join(folder_name, d))]
@@ -72,25 +93,43 @@ def run_tests(folder_name, node_counts, pdf_file, plot_filename):
             else:
                 means_dict[variant].append(None)
 
+    # 1. Graph Section
+    elements.append(Paragraph("Graph: Mean Lap Times", title_style))
+    
     # Plot mean lap times for all variants
     plt.figure(figsize=(6, 4))
-    color_palette = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728']  # Modern color palette
+    color_palette = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728']
     for idx, (variant, means) in enumerate(means_dict.items()):
         filtered_means = [m for m in means if m is not None]
         filtered_nodes = [node_counts[i] for i, m in enumerate(means) if m is not None]
         if filtered_means:
             plt.plot(filtered_nodes, filtered_means, label=variant, marker='o', linestyle='-',
                      color=color_palette[idx % len(color_palette)])
-    plt.xlabel("Number of Nodes")
+    plt.xlabel("Number of Nodes (each with 24 PEs)")
     plt.ylabel("Mean Lap Time (ms)")
+    plt.ylim(bottom=0)  # Set Y-axis to start at zero
     plt.title("Mean Lap Times for Algorithm Variants")
     plt.legend()
     plt.grid(True, linestyle='--', linewidth=0.5, color='grey')
     plt.tight_layout()
 
-    # Save the plot as a high-resolution image and add it to the PDF before the tables
+    # Save the plot as a high-resolution image and add it to the PDF
     plt.savefig(plot_filename, dpi=300)
     elements.append(Image(plot_filename, width=6 * inch, height=4 * inch))
+    elements.append(Spacer(1, 12))
+
+    # 2. Scaling Analysis Section
+    elements.append(Paragraph("Scaling Analysis", title_style))
+    scaling_text = "<b>Scaling Information:</b><br/>"
+    for variant, means in means_dict.items():
+        filtered_means = [m for m in means if m is not None]
+        scaling_type = determine_scaling(filtered_means)
+        scaling_text += f"<b>Variant '{variant}':</b> {scaling_type}.<br/>"
+    elements.append(Paragraph(scaling_text, normal_style))
+    elements.append(Spacer(1, 12))
+
+    # 3. Two-Sample T-Tests Section
+    elements.append(Paragraph("Two-Sample T-Tests", title_style))
 
     # Generate a table for each pairwise comparison
     for i in range(len(variant_dirs)):
@@ -103,8 +142,8 @@ def run_tests(folder_name, node_counts, pdf_file, plot_filename):
                 f"Null Hypothesis: There is no significant difference in mean lap times between "
                 f"'{baseline_variant}' and '{comparison_variant}' variants."
             )
-            elements.append(Paragraph(hypothesis_text, styles["Normal"]))
-            elements.append(Spacer(1, 12))
+            elements.append(Paragraph(hypothesis_text, normal_style))
+            elements.append(Spacer(1, 8))
 
             # Initialize table data
             table_data = [["Nodes", "t-statistic", "p-value", "Conclusion"]]
@@ -149,9 +188,7 @@ def run_tests(folder_name, node_counts, pdf_file, plot_filename):
     doc.build(elements)
     print(f"Hypothesis test results and plot have been saved to {pdf_file}")
 
-
-
-# Example usage for triangle counting algorithm variants (original, linear search, binary search)
+# Example usage
 if __name__ == "__main__":
     folder_name = "../triangle_counter_fall_2024"
     node_counts = [1, 2, 4, 8, 16]
