@@ -34,19 +34,6 @@ def tTest(nodes, folder_name, variant):
 
     return data_sample
 
-def determine_scaling(means):
-    """
-    Determines if the scaling is strong or weak based on changes in mean lap time.
-    """
-    # Compute the percentage changes in lap times
-    percentage_changes = [abs((y - x)/x)*100 if x != 0 else 0 for x, y in zip(means, means[1:])]
-
-    # If lap times change significantly (more than 10%), classify as strong scaling
-    if any(change > 10 for change in percentage_changes):
-        return "strong scaling (constant problem size with increasing nodes)"
-    else:
-        return "weak scaling (problem size increases with nodes)"
-
 def run_tests(folder_name, node_counts, pdf_file, plot_filename):
     global means_dict, data_samples
 
@@ -118,17 +105,7 @@ def run_tests(folder_name, node_counts, pdf_file, plot_filename):
     elements.append(Image(plot_filename, width=6 * inch, height=4 * inch))
     elements.append(Spacer(1, 12))
 
-    # 2. Scaling Analysis Section
-    elements.append(Paragraph("Scaling Analysis", title_style))
-    scaling_text = "<b>Scaling Information:</b><br/>"
-    for variant, means in means_dict.items():
-        filtered_means = [m for m in means if m is not None]
-        scaling_type = determine_scaling(filtered_means)
-        scaling_text += f"<b>Variant '{variant}':</b> {scaling_type}.<br/>"
-    elements.append(Paragraph(scaling_text, normal_style))
-    elements.append(Spacer(1, 12))
-
-    # 3. Two-Sample T-Tests Section
+    # 2. Two-Sample T-Tests Section
     elements.append(Paragraph("Two-Sample T-Tests", title_style))
 
     # Generate a table for each pairwise comparison
