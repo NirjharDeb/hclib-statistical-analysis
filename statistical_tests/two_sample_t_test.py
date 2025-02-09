@@ -87,23 +87,31 @@ def run_tests(folder_name, node_counts, pdf_file, plot_filename, baseline_varian
             else:
                 means_dict[variant].append(None)
 
-    # 1. Graph Section
-    elements.append(Paragraph("Graph: Mean Lap Times", title_style))
+    # 1. Graph Section - Speedup vs Number of Nodes
+    elements.append(Paragraph("Graph: Speedup vs Number of Nodes", title_style))
     
-    # Plot mean lap times for all variants
+    # Plot speedup for each variant compared to the baseline
     plt.figure(figsize=(6, 4))
     color_palette = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728']
-    for idx, (variant, means) in enumerate(means_dict.items()):
-        # Filter out missing data
-        filtered_means = [m for m in means if m is not None]
-        filtered_nodes = [node_counts[i] for i, m in enumerate(means) if m is not None]
-        if filtered_means:
-            plt.plot(filtered_nodes, filtered_means, label=variant, marker='o', linestyle='-',
+    
+    for idx, variant in enumerate(variant_dirs):
+        speedups = []
+        filtered_nodes = []
+        for i, nodes in enumerate(node_counts):
+            baseline_mean = means_dict[baseline_variant][i]
+            variant_mean = means_dict[variant][i]
+            # Ensure both baseline and variant data exist and avoid division by zero.
+            if baseline_mean is not None and variant_mean is not None and variant_mean != 0:
+                speedup = baseline_mean / variant_mean
+                speedups.append(speedup)
+                filtered_nodes.append(nodes)
+        if speedups:
+            plt.plot(filtered_nodes, speedups, label=variant, marker='o', linestyle='-',
                      color=color_palette[idx % len(color_palette)])
+    
     plt.xlabel("Number of Nodes (each with 24 PEs)")
-    plt.ylabel("Mean Lap Time (ms)")
-    plt.ylim(bottom=0)  # Set Y-axis to start at zero
-    plt.title("Mean Lap Times for Algorithm Variants")
+    plt.ylabel("Speedup (Baseline = 1)")
+    plt.title(f"Speedup vs Number of Nodes (Baseline: {baseline_variant})")
     plt.legend()
     plt.grid(True, linestyle='--', linewidth=0.5, color='grey')
     plt.tight_layout()
@@ -203,9 +211,9 @@ def run_tests(folder_name, node_counts, pdf_file, plot_filename, baseline_varian
 
 # Example usage
 if __name__ == "__main__":
-    folder_name = "../toposort_global_spring_2025"
+    folder_name = "../toposort_global_spring_2025_500000"
     node_counts = [1, 2, 4, 8, 16]
-    pdf_file = "toposort_initiate_global_done_analysis.pdf"
-    plot_filename = "toposort_initiate_global_done_graph.png"
+    pdf_file = "toposort_initiate_global_done_analysis_500000.pdf"
+    plot_filename = "toposort_initiate_global_done_graph_500000.png"
     baseline_variant = "original_toposort"
     run_tests(folder_name, node_counts, pdf_file, plot_filename, baseline_variant)
