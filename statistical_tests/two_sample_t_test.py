@@ -114,6 +114,10 @@ def run_tests(folder_name, node_counts, pdf_file, plot_filename, baseline_varian
     plt.title(f"Speedup vs Number of Nodes (Baseline: {baseline_variant})")
     plt.legend()
     plt.grid(True, linestyle='--', linewidth=0.5, color='grey')
+    
+    # Set only the y-axis to start at 0
+    plt.ylim(bottom=0)
+    
     plt.tight_layout()
 
     # Save the plot as a high-resolution image and add it to the PDF
