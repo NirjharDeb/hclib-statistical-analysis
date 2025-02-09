@@ -216,7 +216,7 @@ def run_tests(folder_name, node_counts, pdf_file, plot_filename, baseline_varian
 # Example usage
 if __name__ == "__main__":
     folder_name = "../toposort_global_spring_2025_500000"
-    node_counts = [1, 2, 4, 8, 16]
+    node_counts = [1, 2, 4, 8, 16, 32]
     pdf_file = "toposort_initiate_global_done_analysis_500000.pdf"
     plot_filename = "toposort_initiate_global_done_graph_500000.png"
     baseline_variant = "original_toposort"
